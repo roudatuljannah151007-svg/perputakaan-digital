@@ -1,8 +1,5 @@
 <?php
 
-header_remove('X-Powered-By');
-ini_set('session.cookie_secure', '1');
-ini_set('session.cookie_samesite', 'Lax');
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 
@@ -24,18 +21,35 @@ foreach ($storagePaths as $path) {
     }
 }
 
-// 2. Arahkan path cache bootstrap ke /tmp
 $_ENV['APP_PACKAGES_CACHE'] = '/tmp/bootstrap/cache/packages.php';
 $_ENV['APP_SERVICES_CACHE'] = '/tmp/bootstrap/cache/services.php';
 $_ENV['APP_ROUTES_CACHE'] = '/tmp/bootstrap/cache/routes-v7.php';
 $_ENV['APP_EVENTS_CACHE'] = '/tmp/bootstrap/cache/events.php';
 
-// 3. Muat autoloader Composer
 require __DIR__ . '/../vendor/autoload.php';
 
-// 4. Jalankan aplikasi Laravel dan arahkan storagePath ke /tmp/storage
 /** @var Application $app */
 $app = require_once __DIR__ . '/../bootstrap/app.php';
 $app->useStoragePath('/tmp/storage');
 
-$app->handleRequest(Request::capture());
+// 2. Tangkap request dan paksa header Set-Cookie diteruskan ke Vercel
+$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+$response = $kernel->handle($request = Request::capture());
+
+foreach ($response->headers->getCookies() as $cookie) {
+    setcookie(
+        $cookie->getName(),
+        $cookie->getValue() ?? '',
+        [
+            'expires' => $cookie->getExpiresTime(),
+            'path' => $cookie->getPath(),
+            'domain' => $cookie->getDomain() ?? '',
+            'secure' => true,
+            'httponly' => $cookie->isHttpOnly(),
+            'samesite' => 'Lax',
+        ]
+    );
+}
+
+$response->send();
+$kernel->terminate($request, $response);
