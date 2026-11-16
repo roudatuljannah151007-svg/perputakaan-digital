@@ -8,6 +8,7 @@ use App\Http\Controllers\PeminjamanController;
 use App\Http\Controllers\PengembalianController;
 use App\Http\Controllers\RiwayatPeminjamanController;
 use App\Http\Controllers\LaporanController;
+use App\Models\Buku;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,12 +38,10 @@ Route::get('/dashboard', function (Request $request) {
     }
 
     if ($user->hasRole('siswa')) {
-        // Pastikan route siswa.dashboard ada, atau arahkan ke buku.index jika itu halaman utamanya
-        return redirect()->route('buku.index'); 
+        return redirect()->route('buku.index');
     }
 
     abort(403, 'Akun belum memiliki role.');
-
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 /*
@@ -61,22 +60,17 @@ Route::middleware([
         return view('admin.dashboard');
     })->name('dashboard');
 
-    // Kelola pengguna
     Route::middleware([
         'permission:manage users',
         'permission:manage user roles'
     ])->group(function () {
-
         Route::resource(
             'users',
             \App\Http\Controllers\Admin\UserController::class
         )->except(['show']);
-
     });
 
-    // Peminjaman
     Route::middleware('permission:manage loans')->group(function () {
-
         Route::get('/peminjaman', [
             PeminjamanController::class,
             'index'
@@ -89,9 +83,7 @@ Route::middleware([
           ->name('peminjaman.status');
     });
 
-    // Pengembalian
     Route::middleware('permission:manage returns')->group(function () {
-
         Route::get('/pengembalian', [
             PengembalianController::class,
             'index'
@@ -104,14 +96,12 @@ Route::middleware([
           ->name('pengembalian.update');
     });
 
-    // Laporan Perpustakaan Admin
     Route::get('/laporan', [
         LaporanController::class,
         'index'
     ])
     ->middleware('permission:view library reports')
-    ->name('laporan.index');   
-    
+    ->name('laporan.index');
 });
 
 /*
@@ -126,14 +116,11 @@ Route::middleware([
     'permission:access petugas dashboard'
 ])->prefix('petugas')->name('petugas.')->group(function () {
 
-    // Dashboard petugas
     Route::get('/dashboard', function () {
         return view('petugas.dashboard');
     })->name('dashboard');
 
-    // Peminjaman
     Route::middleware('permission:manage loans')->group(function () {
-
         Route::get('/peminjaman', [
             PeminjamanController::class,
             'index'
@@ -146,9 +133,7 @@ Route::middleware([
           ->name('peminjaman.status');
     });
 
-    // Pengembalian
     Route::middleware('permission:manage returns')->group(function () {
-
         Route::get('/pengembalian', [
             PengembalianController::class,
             'index'
@@ -161,21 +146,16 @@ Route::middleware([
           ->name('pengembalian.update');
     });
 
-    // Laporan perpustakaan
     Route::get('/laporan', [
         LaporanController::class,
         'index'
     ])->middleware('permission:view library reports')
       ->name('laporan.index');
-
-    
-
-    
 });
 
 /*
 |--------------------------------------------------------------------------
-| BUKU
+| BUKU (HALAMAN WEB)
 |--------------------------------------------------------------------------
 */
 
@@ -193,6 +173,76 @@ Route::middleware([
         BukuController::class,
         'show'
     ])->name('buku.show');
+
+});
+
+/*
+|--------------------------------------------------------------------------
+| ENDPOINT FETCH API BUKU (GET, POST, PUT, DELETE)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth')->prefix('api')->group(function () {
+
+    Route::get('/buku', function () {
+        $bukus = Buku::with('kategori')->orderBy('id', 'asc')->get()->map(function ($buku) {
+            return [
+                'id' => $buku->id,
+                'kategori_id' => $buku->kategori_id,
+                'kategori' => $buku->kategori->nama ?? '-',
+                'judul' => $buku->judul,
+                'penulis' => $buku->penulis,
+                'tahun' => $buku->tahun_terbit,
+            ];
+        });
+
+        return response()->json([
+            'data' => $bukus,
+        ]);
+    });
+
+    Route::post('/buku', function (Request $request) {
+        $validated = $request->validate([
+            'kategori_id' => 'required|exists:kategoris,id',
+            'judul' => 'required|string|max:150',
+            'penulis' => 'required|string|max:100',
+            'tahun_terbit' => 'required|integer|min:1900|max:2026',
+        ]);
+
+        $buku = Buku::create($validated);
+
+        return response()->json([
+            'message' => 'Buku berhasil ditambahkan.',
+            'data' => $buku,
+        ], 201);
+    });
+
+    Route::put('/buku/{id}', function (Request $request, int $id) {
+        $buku = Buku::findOrFail($id);
+
+        $validated = $request->validate([
+            'kategori_id' => 'required|exists:kategoris,id',
+            'judul' => 'required|string|max:150',
+            'penulis' => 'required|string|max:100',
+            'tahun_terbit' => 'required|integer|min:1900|max:2026',
+        ]);
+
+        $buku->update($validated);
+
+        return response()->json([
+            'message' => 'Buku berhasil diperbarui.',
+            'data' => $buku,
+        ]);
+    });
+
+    Route::delete('/buku/{id}', function (int $id) {
+        $buku = Buku::findOrFail($id);
+        $buku->delete();
+
+        return response()->json([
+            'message' => 'Buku berhasil dihapus.',
+        ]);
+    });
 
 });
 
@@ -237,6 +287,7 @@ Route::middleware('auth')->group(function () {
     ])->name('peminjaman.riwayat');
 
 });
+
 /*
 |--------------------------------------------------------------------------
 | PENGAJUAN PEMINJAMAN SISWA
