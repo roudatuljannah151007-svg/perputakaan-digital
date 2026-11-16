@@ -10,9 +10,8 @@ class BukuController extends Controller
     public function index()
     {
         $kategori = Kategori::all();
-        $bukus = Buku::with('kategori')->orderBy('id', 'desc')->get();
 
-        return view('buku.index', compact('kategori', 'bukus'));
+        return view('buku.index', compact('kategori'));
     }
 
     public function show(int $id)
