@@ -85,6 +85,9 @@ return [
         ],
 
         'pgsql' => [
+            'options' => extension_loaded('pdo_pgsql') ? [
+    PDO::ATTR_EMULATE_PREPARES => true,
+] : [],
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
