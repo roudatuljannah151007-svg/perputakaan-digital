@@ -358,7 +358,7 @@
 </div>
 
 <script>
-    const API_URL = '/api/buku';
+    const API_URL = '/buku/ajax';
 
     const bookList = document.getElementById('bookList');
     const apiMessage = document.getElementById('apiMessage');
@@ -594,6 +594,29 @@
         cancelButton.hidden = true;
     }
 
+    function isiFormUbah(buku) {
+        if (!bukuForm) {
+            return;
+        }
+
+        hapusPesan();
+
+        bukuId.value = buku.id;
+        kategoriInput.value = buku.kategori_id ?? '';
+        judulInput.value = buku.judul ?? '';
+        penulisInput.value = buku.penulis ?? '';
+        tahunInput.value = buku.tahun ?? '';
+
+        formTitle.textContent = 'Ubah Buku';
+        submitButton.textContent = 'Simpan Perubahan';
+        cancelButton.hidden = false;
+
+        bukuForm.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+
     // POST untuk tambah, PUT untuk ubah buku.
     if (bukuForm) {
         bukuForm.addEventListener('submit', async function (event) {
@@ -647,25 +670,6 @@
                 );
             }
         });
-
-        function isiFormUbah(buku) {
-            hapusPesan();
-
-            bukuId.value = buku.id;
-            kategoriInput.value = buku.kategori_id ?? '';
-            judulInput.value = buku.judul ?? '';
-            penulisInput.value = buku.penulis ?? '';
-            tahunInput.value = buku.tahun ?? '';
-
-            formTitle.textContent = 'Ubah Buku';
-            submitButton.textContent = 'Simpan Perubahan';
-            cancelButton.hidden = false;
-
-            bukuForm.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
 
         cancelButton.addEventListener('click', function () {
             resetForm();
