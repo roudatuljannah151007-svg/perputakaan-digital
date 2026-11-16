@@ -2,17 +2,56 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Buku;
+use App\Models\Kategori;
 
 class BukuSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        Buku::factory()->count(5)->create();
+        // Ambil kategori pertama yang tersedia di database
+        $kategori = Kategori::first();
+        $kategoriId = $kategori ? $kategori->id : 1;
+
+        $daftarBuku = [
+            [
+                'kategori_id' => $kategoriId,
+                'judul' => 'Laskar Pelangi',
+                'penulis' => 'Andrea Hirata',
+                'tahun_terbit' => 2005,
+            ],
+            [
+                'kategori_id' => $kategoriId,
+                'judul' => 'Bumi',
+                'penulis' => 'Tere Liye',
+                'tahun_terbit' => 2014,
+            ],
+            [
+                'kategori_id' => $kategoriId,
+                'judul' => 'Negeri 5 Menara',
+                'penulis' => 'Ahmad Fuadi',
+                'tahun_terbit' => 2009,
+            ],
+            [
+                'kategori_id' => $kategoriId,
+                'judul' => 'Filosofi Teras',
+                'penulis' => 'Henry Manampiring',
+                'tahun_terbit' => 2018,
+            ],
+            [
+                'kategori_id' => $kategoriId,
+                'judul' => 'Atomic Habits',
+                'penulis' => 'James Clear',
+                'tahun_terbit' => 2018,
+            ],
+        ];
+
+        foreach ($daftarBuku as $buku) {
+            Buku::firstOrCreate(
+                ['judul' => $buku['judul']],
+                $buku
+            );
+        }
     }
 }
