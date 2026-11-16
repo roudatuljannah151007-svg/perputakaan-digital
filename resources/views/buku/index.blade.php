@@ -285,8 +285,6 @@
         </div>
     </div>
 
-    
-
     <div id="apiMessage" class="api-message" role="alert"></div>
 
     {{-- Form tambah dan ubah buku hanya untuk Admin/Petugas --}}
@@ -352,7 +350,8 @@
         class="book-grid"
         data-kelola="{{ auth()->user()->can('manage books') ? '1' : '0' }}"
         data-pinjam="{{ auth()->user()->hasRole('siswa') && auth()->user()->can('request book loans') ? '1' : '0' }}"
-        data-csrf="{{ csrf_token() }}">
+        data-csrf="{{ csrf_token() }}"
+        data-buku="{{ json_encode($bukus ?? []) }}">
         <p class="api-loading">Memuat data buku...</p>
     </div>
 
@@ -379,7 +378,7 @@
     const BOLEH_AJUKAN_PINJAMAN = bookList.dataset.pinjam === '1';
     const CSRF_TOKEN = bookList.dataset.csrf;
 
-    let daftarBuku = [];
+    let daftarBuku = JSON.parse(bookList.dataset.buku || '[]');
 
     function tampilkanPesan(pesan, tipe = 'success') {
         apiMessage.textContent = pesan;
@@ -409,7 +408,7 @@
         return data;
     }
 
-    // Mengambil data buku menggunakan GET dan Fetch API.
+    // Mengambil data buku terbaru setelah Tambah/Ubah/Hapus.
     async function ambilBuku() {
         bookList.innerHTML =
             '<p class="api-loading">Memuat data buku...</p>';
@@ -718,7 +717,7 @@
         }
     }
 
-    ambilBuku();
+    tampilkanBuku(daftarBuku);
 </script>
 
 @endsection
