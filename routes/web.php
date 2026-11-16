@@ -17,7 +17,7 @@ use App\Http\Controllers\LaporanController;
 */
 
 Route::get('/', function () {
-    return redirect()->route('dashboard');
+    return view('welcome');
 })->name('home');
 
 /*
