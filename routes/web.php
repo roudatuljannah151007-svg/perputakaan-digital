@@ -17,7 +17,7 @@ use App\Http\Controllers\LaporanController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('dashboard');
 })->name('home');
 
 /*
@@ -38,7 +38,8 @@ Route::get('/dashboard', function (Request $request) {
     }
 
     if ($user->hasRole('siswa')) {
-        return redirect()->route('buku.index');
+        // Pastikan route siswa.dashboard ada, atau arahkan ke buku.index jika itu halaman utamanya
+        return redirect()->route('buku.index'); 
     }
 
     abort(403, 'Akun belum memiliki role.');
@@ -168,20 +169,9 @@ Route::middleware([
     ])->middleware('permission:view library reports')
       ->name('laporan.index');
 
-    /*
-    |--------------------------------------------------------------------------
-    | RIWAYAT PEMINJAMAN SEMUA ROLE
-    |--------------------------------------------------------------------------
-    */
+    
 
-    Route::middleware('auth')->group(function () {
-
-        Route::get('/riwayat-peminjaman', [
-            RiwayatPeminjamanController::class,
-            'index'
-        ])->name('peminjaman.riwayat');
-
-    });
+    
 });
 
 /*
