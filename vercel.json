@@ -33,6 +33,8 @@
         "CACHE_STORE": "array",
         "LOG_CHANNEL": "stderr",
         "SESSION_DRIVER": "database",
-        "SESSION_SAME_SITE": "lax"
+        "SESSION_SECURE_COOKIE": "true",
+        "SESSION_SAME_SITE": "lax",
+        "SESSION_HTTP_ONLY": "true"
     }
 }

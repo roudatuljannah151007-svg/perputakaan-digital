@@ -1,5 +1,8 @@
 <?php
 
+header_remove('X-Powered-By');
+ini_set('session.cookie_secure', '1');
+ini_set('session.cookie_samesite', 'Lax');
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 
