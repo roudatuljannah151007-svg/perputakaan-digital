@@ -312,5 +312,40 @@ Route::middleware([
 | AUTHENTICATION BREEZE
 |--------------------------------------------------------------------------
 */
+/*
+|--------------------------------------------------------------------------
+| ROUTE DETAIL PEMINJAMAN & VALIDASI AKSES (SOAL 6)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth')->group(function () {
+
+    // Skenario #8: Siswa mengakses /buku/create harus 403 Forbidden
+    Route::get('/buku/create', function (Request $request) {
+        if (!$request->user()->can('manage books')) {
+            abort(403, 'Anda tidak memiliki izin mengakses halaman ini.');
+        }
+        return redirect()->route('buku.index');
+    })->name('buku.create');
+
+    // Skenario #2, #9, #10, #11: Detail peminjaman dengan pengecekan kepemilikan
+    Route::get('/peminjaman/{id}', function (Request $request, int $id) {
+        $peminjaman = \App\Models\Peminjaman::with(['user', 'buku'])->findOrFail($id);
+        $user = $request->user();
+
+        // Admin dan Petugas boleh melihat peminjaman siswa mana pun (#11)
+        if ($user->hasRole('admin') || $user->hasRole('petugas')) {
+            return response()->json($peminjaman);
+        }
+
+        // Siswa hanya boleh melihat miliknya sendiri (#9), milik siswa lain -> 403 (#10)
+        if ((int) $peminjaman->user_id !== (int) $user->id) {
+            abort(403, 'Anda tidak berhak melihat data peminjaman siswa lain.');
+        }
+
+        return response()->json($peminjaman);
+    })->name('peminjaman.show');
+
+});
 
 require __DIR__.'/auth.php';
